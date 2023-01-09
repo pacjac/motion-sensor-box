@@ -130,7 +130,7 @@ NOTE: you have to change PORT to a port that is still available.
 Copy the pre-configured service file to `/etc/systemd/system/` and add the reverse ssh tunnel service to systemd:
 
 ```bash
-sudo cp doc/rtunnel.service /etc/systemd/systemd/
+sudo cp doc/rtunnel.service /etc/systemd/system/
 
 sudo systemctl daemon-reload
 sudo systemctl start rtunnel
@@ -152,7 +152,7 @@ The configuration of chronyd follows largely [this](https://www.slsmk.com/how-to
 2. build gpsd by running:
 
 ```bash
-scons -config=force
+scons --config=force
 ```
 
 3. check the build by running
