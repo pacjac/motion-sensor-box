@@ -12,6 +12,7 @@ class Test_Sender(unittest.TestCase):
         self.topic = "imu".encode()
         self.subscriber = Subscriber(port=port, topic=self.topic)
         self.publisher = Publisher(port=port)
+        # We need a short
         time.sleep(0.1)
 
     def get_data(self):
