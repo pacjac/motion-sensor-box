@@ -1,8 +1,4 @@
-import sys, os 
 import argparse
-
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from msb_config.MSBConfig import MSBConfig
 
@@ -53,7 +49,3 @@ class SerialConfig(MSBConfig):
                 print(f"overriding print flag with command line flag")
             self.print_stdout = True
 
-
-
-if __name__ == "__main__":
-    pass

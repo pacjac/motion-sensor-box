@@ -1,6 +1,7 @@
+import os
 import unittest
 
-from SerialReader import SerialReader
+from msb_serial.SerialReader import SerialReader
 
 class TestExtractFloats(unittest.TestCase):
     def setUp(self):

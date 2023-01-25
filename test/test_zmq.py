@@ -1,6 +1,8 @@
-from Publisher import Publisher
-from Subscriber import Subscriber
 import unittest
+
+from zmq_base.Publisher import Publisher
+from zmq_base.Subscriber import Subscriber
+
 import zmq
 import pickle
 import time

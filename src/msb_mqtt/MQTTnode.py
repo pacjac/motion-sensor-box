@@ -3,18 +3,18 @@ import sys, os
 import ssl
 import time
 
-from Subscriber import Subscriber
-from MQTTConfig import MQTTConfig
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
+
+from msb_mqtt.MQTTConfig import MQTTConfig
+from zmq_base.Subscriber import Subscriber
 
 class MQTTnode:
     def __init__(self, config_override={}):
         self.config = MQTTConfig(override=config_override)
         self.subscriber = Subscriber(connect_to=self.config.xpub_socketstring)
         self.connect_mqtt()
-        self.client.loop_start()
 
     '''
     Main loop: data comes in through zmq subscription socket, passed on to mqtt publish
@@ -69,6 +69,7 @@ class MQTTnode:
             self.client.tls_set(tls_version=ssl.PROTOCOL_TLS_CLIENT) 
 
         self.client.connect(self.config.mqtt_broker, self.config.mqtt_port)
+        self.client.loop_start()
 
 
     def __del__(self):

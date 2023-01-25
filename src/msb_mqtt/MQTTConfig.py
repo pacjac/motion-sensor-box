@@ -24,7 +24,7 @@ class MQTTConfig(MSBConfig):
         self.user = ""
         self.passwd = ""
         self.mqtt_broker = "localhost"
-        self.mqtt_port = "1883"
+        self.mqtt_port = 1883
         self.topics = []
         self.measurement = "test"
         self.qos = 2

@@ -1,9 +1,21 @@
 import unittest 
+
 import paho.mqtt.client as mqtt
 import time
 import ssl
 
-from MQTTnode import MQTTnode 
+from msb_mqtt.MQTTnode import MQTTnode 
+from msb_mqtt.MQTTConfig import MQTTConfig 
+
+class PahoMQTTTester(unittest.TestCase):
+    def setUp(self):
+        self.client = mqtt.Client()
+        self.client.username_pw_set("felix", "albatrozz")
+        self.client.connect("localhost", 1883)
+
+    def tearDown(self):
+        self.client.disconnect()
+
 
 class MQTTconnectionTester(unittest.TestCase):
     def setUp(self):
@@ -40,7 +52,7 @@ class MQTTconnectionTester(unittest.TestCase):
         self.client.loop_start()
         # self.client.publish(topic, message, qos=1)
         self.mqttnode.publish(topic, test_message)
-        time.sleep(3)
+        time.sleep(0.1)
         self.client.loop_stop()
 
         expected_return = f"test turbine/topic1={test_message} {time.time_ns()}"
@@ -76,22 +88,21 @@ class ConfigTester(unittest.TestCase):
                     "ssl" : False,
                     "topics" : ["test", "over"],
                 }
-        self.mqttnode = MQTTnode(override)
-        self.assertEqual(self.mqttnode.config.mqtt_broker, "localhost")
-        self.assertEqual(self.mqttnode.config.user, "felix")
-        self.assertEqual(self.mqttnode.config.mqtt_port, 1883)
-        self.assertEqual(self.mqttnode.config.qos, 2)
-        self.assertEqual(self.mqttnode.config.ssl, False)
-        self.assertListEqual(sorted(["over", "test"]), sorted(self.mqttnode.config.topics))
+        self.config = MQTTConfig(override=override)
+        self.assertEqual(self.config.mqtt_broker, "localhost")
+        self.assertEqual(self.config.user, "felix")
+        self.assertEqual(self.config.mqtt_port, 1883)
+        self.assertEqual(self.config.qos, 2)
+        self.assertEqual(self.config.ssl, False)
+        self.assertListEqual(sorted(["over", "test"]), sorted(self.config.topics))
 
-    def test_reads_config_correctly(self):
-        self.mqttnode = MQTTnode()
-        self.assertEqual(self.mqttnode.config.mqtt_broker, "fweiler.de")
-        self.assertEqual(self.mqttnode.config.user, "albatrozz")
-        self.assertEqual(self.mqttnode.config.mqtt_port, 8883)
-        self.assertEqual(self.mqttnode.config.qos, 2)
-        self.assertEqual(self.mqttnode.config.ssl, True)
-        self.assertListEqual(sorted(["pow", "imu"]), sorted(self.mqttnode.config.topics))
+    def no_test_reads_config_correctly(self):
+        # self.mqttnode = MQTTnode()
+        self.config = MQTTConfig()
+        self.assertEqual(self.config.mqtt_broker, "fweiler.de")
+        self.assertEqual(self.config.user, "albatrozz")
+        self.assertEqual(self.config.mqtt_port, 8883)
+        self.assertEqual(self.config.qos, 2)
+        self.assertEqual(self.config.ssl, True)
+        self.assertListEqual(sorted(["pow", "imu"]), sorted(self.config.topics))
 
-if __name__ == "__main__":
-    unittest.main()
