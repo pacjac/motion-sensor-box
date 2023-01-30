@@ -16,7 +16,6 @@ class SerialReader:
 
 
 
-
     def extractFloats(self, text, isBytes=True):
         if isBytes:
             data_values = [

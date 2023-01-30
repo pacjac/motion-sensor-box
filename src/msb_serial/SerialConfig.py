@@ -17,6 +17,7 @@ class SerialConfig(MSBConfig):
 
     def set_default_attributes(self):
         self.regex = ""
+        self.device = "/usb/TTY0"
 
     def load_override(self, override):
         for att_name, att_value in override.items():

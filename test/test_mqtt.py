@@ -22,7 +22,7 @@ class MQTTconnectionTester(unittest.TestCase):
         self.client = mqtt.Client()
         self.client.username_pw_set("felix", "albatrozz")
         self.client.on_connect = self.on_connect
-        # self.client.tls_set(tls_version=ssl.PROTOCOL_TLS_CLIENT) 
+
         self.client.connect("localhost", 1883)
         self.override = {"mqtt_broker" : "localhost",
                     "user" : "felix",
@@ -50,7 +50,7 @@ class MQTTconnectionTester(unittest.TestCase):
         self.client.subscribe(f"turbine/{topic}")
         self.client.on_message = self.on_message
         self.client.loop_start()
-        # self.client.publish(topic, message, qos=1)
+
         self.mqttnode.publish(topic, test_message)
         time.sleep(0.1)
         self.client.loop_stop()
