@@ -11,7 +11,7 @@ from msb_fusionlog.FusionlogConfig import FusionlogConfig
 class TestConfig(unittest.TestCase):
     def test_correct_env(self):
         env_varname = "MSB_CONFIG_DIR"
-        self.assertIn(env_varname, os.environ)
+        self.assertIn(env_varname, os.environ, f"Environment variable {env_varname} not set")
 
     def test_can_import(self):
         config = MSBConfig()

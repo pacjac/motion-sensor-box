@@ -1,8 +1,5 @@
-import json
-import logging
 import os
 import signal
-import socket
 import sys
 import zmq
 
@@ -15,33 +12,37 @@ def signal_handler(sig, frame):
     print('msb_broker.py exit')
     sys.exit(0)
 
+
 def msb_broker(broker_config : BrokerConfig):
-    if broker_config.verbose:
-        print("creating zmq context object")
+
+    def info(text):
+        if broker_config.verbose: print(text)
+
+    info("creating zmq context object")
     ctx = zmq.Context()
-    if broker_config.verbose:
-        print("creating xpub socket")
+
+    info("creating xpub socket")
     xpub = ctx.socket(zmq.XPUB)
-    if broker_config.verbose:
-        print("creating zsub socket")
+
+    info("creating zsub socket")
     xsub = ctx.socket(zmq.XSUB)
+
     try:
-        xpub.bind(broker_config.zmq["xpub_connect_string"])
+        xpub.bind(broker_config.xpub_socketstring)
     except Exception as e:
         print(f'failed to bind to publisher: {e}')
         sys.exit(-1)
-    if broker_config.verbose:
-        print(f'successully bound to publisher socket: {broker_config.zmq["xpub_connect_string"]}')
+    info(f'successully bound to publisher socket: {broker_config.xpub_socketstring}')
+
     try:
-        xsub.bind(broker_config.zmq["xsub_connect_string"])
+        xsub.bind(broker_config.xsub_socketstring)
     except Exception as e:
         print(f'failed to bin to subscriber: {e}')
         sys.exit(-1)
-    if broker_config.verbose:
-        print(f'successully bound to subscriber socket: {broker_config.zmq["xsub_connect_string"]}')
+    info(f'successully bound to subscriber socket: {broker_config.xsub_socketstring}')
+
     try:
-        if broker_config.verbose:
-            print("creating proxy")
+        info("creating proxy")
         zmq.proxy(xpub, xsub)
     except Exception as e:
         print(f'failed to create proxy: {e}')
