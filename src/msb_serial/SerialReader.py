@@ -1,5 +1,4 @@
 import re
-import sys, os
 import serial
 
 from msb_serial.SerialConfig import SerialConfig
@@ -10,10 +9,24 @@ from msb_serial.SerialConfig import SerialConfig
 from zmq_base.Publisher import MsbPublisher
 
 class SerialReader:
-    def __init__(self, config_override={}):
+    def __init__(self):
         self.config = SerialConfig()
-        self.publisher = MsbPublisher()
+        self.publisher = MsbPublisher(connect_to=self.config.xpub_socketstring)
         self.topic = self.config.topic
+
+        # Assert that device is connected to /dev/serial0
+        try:
+            with serial.Serial('/dev/serial0', baudrate=9600, timeout = 0.05) as serial_reader:
+                pass
+        except serial.serialutil.SerialException:
+            raise Exception("Serial device not connected to /dev/serial0")
+
+
+
+    def read_message_extract_and_publish(self):
+        for message in self.read_message():
+            data_values = self.extractFloats(message)
+            self.publisher.send(self.topic, data_values)
 
 
     def extractFloats(self, text, isBytes=True):
@@ -28,12 +41,16 @@ class SerialReader:
         return data_values
 
 
-    def read_message():
+    def read_message(self):
         with serial.Serial('/dev/serial0', baudrate=9600, timeout = 0.05) as serial_reader:
             while True:
                 if serial_reader.in_waiting > 0 :
                     message = serial_reader.readline()
-                    yield message.decode('utf-8')
+                    if isinstance(message, bytes):
+                        message = message.decode('utf-8')
+                    yield message
 
 if __name__ == "__main__":
     reader = SerialReader()
+    # Run continuous loop
+    reader.read_message_extract_and_publish()
