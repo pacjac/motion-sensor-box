@@ -9,6 +9,8 @@ class MQTTnode:
     def __init__(self, config_override={}, debug=False):
         self.debug = debug
         self.config = MQTTConfig(override=config_override)
+
+        if self.debug: print(f"Subscribing to topics: {self.config.topics}")
         self.subscriber = Subscriber(connect_to=self.config.xpub_socketstring, topics=self.config.topics)
         self.connect_mqtt()
 
@@ -21,9 +23,12 @@ class MQTTnode:
         # At which level to place the while loop?
         while True:
             # This is blocking
-            (zmq_topic, data) = self.subscriber.receive()
+            try:
+                (zmq_topic, data) = self.subscriber.receive()
 
-            self.publish(zmq_topic, data)
+                self.publish(zmq_topic.decode(), float(data.decode()))
+            except Exception as e:
+                print(e)
 
 
     '''
@@ -37,8 +42,8 @@ class MQTTnode:
         msg = f"{self.config.measurement} {topic}={data} {now}"
 
         if self.debug: print(f"publishing to {topic} with msg : {msg}")
-        result = self.client.publish(topic, msg, qos=self.config.qos)
 
+        result = self.client.publish(topic, msg, qos=self.config.qos)
         return result
 
     
