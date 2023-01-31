@@ -8,3 +8,6 @@
 [submodule "lib/ahrs"]
 	path = lib/ahrs
 	url = https://github.com/Mayitzin/ahrs.git
+[submodule "systemd-manager"]
+	path = systemd-manager
+	url = https://github.com/emlid/systemd-manager.git

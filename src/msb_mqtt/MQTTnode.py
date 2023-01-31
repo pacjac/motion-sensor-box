@@ -1,20 +1,17 @@
 from paho.mqtt import client as mqtt_client
-import sys, os
 import ssl
 import time
-
-
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from msb_mqtt.MQTTConfig import MQTTConfig
 from zmq_base.Subscriber import Subscriber
 
 class MQTTnode:
-    def __init__(self, config_override={}):
+    def __init__(self, config_override={}, debug=False):
+        self.debug = debug
         self.config = MQTTConfig(override=config_override)
-        self.subscriber = Subscriber(connect_to=self.config.xpub_socketstring)
+        self.subscriber = Subscriber(connect_to=self.config.xpub_socketstring, topics=self.config.topics)
         self.connect_mqtt()
+
 
     '''
     Main loop: data comes in through zmq subscription socket, passed on to mqtt publish
@@ -39,7 +36,7 @@ class MQTTnode:
         topic= self.create_topic_from_zmq(zmq_topic)
         msg = f"{self.config.measurement} {topic}={data} {now}"
 
-        print(f"publishing to {topic} with msg : {msg}")
+        if self.debug: print(f"publishing to {topic} with msg : {msg}")
         result = self.client.publish(topic, msg, qos=self.config.qos)
 
         return result
@@ -49,14 +46,14 @@ class MQTTnode:
     From a 3 character zmq topic create a hierarchical topic suitable for mqtt
     i.e. "imu" --> turbine1/blade2/flap4/imu
     '''
-    def create_topic_from_zmq(self, zmq_topic):
+    def create_topic_from_zmq(self, zmq_topic : str):
         return f"turbine/{zmq_topic}"
 
 
     def connect_mqtt(self):
         def on_connect(client, userdata, flags, rc):
             if rc == 0:
-                print(f'MQTT node connected to {self.config.mqtt_broker}:{self.config.mqtt_port}')
+                if self.debug: print(f'MQTT node connected to {self.config.mqtt_broker}:{self.config.mqtt_port}')
             else:
                 print('Connection failed!')
 
@@ -72,10 +69,40 @@ class MQTTnode:
         self.client.loop_start()
 
 
-    def __del__(self):
-        self.client.loop_stop()
-
-
 if __name__ == "__main__":
-    mqtt_tester = MQTTnode()
-    print(mqtt_tester.config.user)
+    from argparse import ArgumentParser
+
+    parser = ArgumentParser()
+    parser.add_argument(
+        "-r",
+        "--run",
+        action="store_true",
+        help="Run in blocking mode, waiting for input and publishing via mqtt"
+    )
+    parser.add_argument(
+        "-o",
+        "--override",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--data",
+        type=float
+    )
+    args = parser.parse_args()
+
+    if args.override:
+        override = {"mqtt_broker" : "localhost", 
+                    "mqtt_port" : 1883, 
+                    "mqtt_user" : "felix",
+                    "passwd" : "albatrozz",
+                    "ssl" : False
+                    }
+
+        mqtt_tester = MQTTnode(override)
+    else:
+        mqtt_tester = MQTTnode(debug=True)
+
+    if args.run:
+        mqtt_tester.wait_for_input_and_publish()
+    elif args.data:
+        mqtt_tester.publish("tst", args.data)

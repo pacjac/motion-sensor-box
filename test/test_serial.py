@@ -1,12 +1,14 @@
 import os
 import unittest
 
-from msb_serial.SerialReader import SerialReader
+from src.msb_serial.SerialReader import SerialReader
 
 class TestExtractFloats(unittest.TestCase):
     def setUp(self):
         self.reader = SerialReader()
 
+    def test_topic(self):
+        self.assertEqual(self.reader.topic, "tst")
     def test_empty_string(self):
         self.assertEqual(self.reader.extractFloats(b""), [])
 

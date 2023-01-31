@@ -16,7 +16,7 @@ class Test_Sender(unittest.TestCase):
     def setUp(self):
         port = 66665
         self.topic = "imu".encode()
-        self.subscriber = Subscriber(port=port, topic=self.topic)
+        self.subscriber = Subscriber(port=port, topics=self.topic)
         self.publisher = Publisher(port=port)
         # We need a short
         time.sleep(0.1)

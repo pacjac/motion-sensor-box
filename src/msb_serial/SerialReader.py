@@ -7,13 +7,13 @@ from msb_serial.SerialConfig import SerialConfig
 # SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 # sys.path.append(os.path.dirname(SCRIPT_DIR))
 
-from zmq_base.Publisher import Publisher
+from zmq_base.Publisher import MsbPublisher
 
 class SerialReader:
     def __init__(self, config_override={}):
-        self.config = SerialConfig(override=config_override)
-        self.publisher = Publisher()
-
+        self.config = SerialConfig()
+        self.publisher = MsbPublisher()
+        self.topic = self.config.topic
 
 
     def extractFloats(self, text, isBytes=True):
@@ -36,4 +36,4 @@ class SerialReader:
                     yield message.decode('utf-8')
 
 if __name__ == "__main__":
-    unittest.main()
+    reader = SerialReader()

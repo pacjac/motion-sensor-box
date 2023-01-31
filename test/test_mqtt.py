@@ -4,18 +4,8 @@ import paho.mqtt.client as mqtt
 import time
 import ssl
 
-from msb_mqtt.MQTTnode import MQTTnode 
-from msb_mqtt.MQTTConfig import MQTTConfig 
-
-class PahoMQTTTester(unittest.TestCase):
-    def setUp(self):
-        self.client = mqtt.Client()
-        self.client.username_pw_set("felix", "albatrozz")
-        self.client.connect("localhost", 1883)
-
-    def tearDown(self):
-        self.client.disconnect()
-
+from src.msb_mqtt.MQTTnode import MQTTnode
+from src.msb_mqtt.MQTTConfig import MQTTConfig 
 
 class MQTTconnectionTester(unittest.TestCase):
     def setUp(self):
@@ -36,8 +26,16 @@ class MQTTconnectionTester(unittest.TestCase):
 
 
     def tearDown(self):
+        self.mqttnode.client.loop_stop()
+        self.mqttnode.client.disconnect()
         self.client.disconnect()
 
+    def test_correctly_transforms_zmq_to_mqtt_topic(self):
+        input = "imu"
+        exp_out = "/turbine1/imu"
+
+        out = self.mqttnode.create_topic_from_zmq(input)
+        self.assertEqual(exp_out, out)
 
     def test_publish(self):
         (result, mid) = self.mqttnode.publish("test/topic", "Hello, MQTT!")
@@ -96,7 +94,7 @@ class ConfigTester(unittest.TestCase):
         self.assertEqual(self.config.ssl, False)
         self.assertListEqual(sorted(["over", "test"]), sorted(self.config.topics))
 
-    def no_test_reads_config_correctly(self):
+    def test_reads_config_correctly(self):
         # self.mqttnode = MQTTnode()
         self.config = MQTTConfig()
         self.assertEqual(self.config.mqtt_broker, "fweiler.de")

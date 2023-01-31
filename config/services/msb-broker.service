@@ -8,9 +8,9 @@ SyslogIdentifier=msb-broker
 Type=simple
 Restart=always
 RestartSec=1
-Environment="MSB_CONFIG_DIR=/home/pi/.config"
-User=pi
-ExecStart=/usr/bin/python3 /home/pi/motion-sensor-box/src/msb_broker/msb_broker.py
+Environment="MSB_CONFIG_DIR=/home/felix/.config"
+User=felix
+ExecStart=/usr/bin/python3 /home/felix/repositories/motion-sensor-box/src/msb_broker/msb_broker.py
 
 [Install]
 WantedBy=multi-user.target

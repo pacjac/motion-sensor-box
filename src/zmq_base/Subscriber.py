@@ -4,14 +4,15 @@ import zmq
 class Subscriber:
     def __init__(
         self,
-        topic="",
+        topics="",
         protocol="tcp",
         ip="localhost",
         port="5555",
         connect_to=None,
         debug=False,
     ):
-        self.topic = topic.encode() if type(topic) != bytes else topic
+        # self.topics = topics.encode() if type(topics) != bytes else topics
+        self.topics = topics
         self.debug = debug
 
         if not connect_to:
@@ -22,9 +23,24 @@ class Subscriber:
         self.context = zmq.Context.instance()
         self.socket = self.context.socket(zmq.SUB)
         self.socket.connect(connect_to)
-        self.socket.setsockopt(zmq.SUBSCRIBE, self.topic)
+
+        # Subscribe to multiple topics 
+        if type(self.topics) is list:
+            for topic in topics:
+                self.subscribe(topic)
+        # Or single topic, depending on input
+        else:
+            self.subscribe(self.topics)
+
+
+
+    def subscribe(self, topic):
+        if not type(topic) is bytes:
+            topic = topic.encode()
+        self.socket.setsockopt(zmq.SUBSCRIBE, topic)
         if self.debug:
-            print(f"Subscribed to {self.topic.decode()}")
+            print(f"Subscribed to {topic.decode()}")
+
 
     def __del__(self):
         self.socket.close()
