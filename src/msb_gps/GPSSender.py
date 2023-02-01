@@ -6,21 +6,12 @@ import sys
 import time
 import uptime
 import zmq
-# add /usr/local/lib/python3/dist-packages to the system path
-GPS_DIR = '/usr/local/lib/python3/dist-packages/'
-if not os.path.isdir(os.path.join(GPS_DIR, 'gps')):
-    raise Exception(f'no such file or directory: {GPS_DIR/gps}')
-sys.path.append(os.path.dirname(GPS_DIR))
-try:
-    import gps
-except ImportError as e:
-    raise Exception('failed to import gps module')
-    sys.exit(-1)
+
+import gps
+
 # local imports
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(SCRIPT_DIR))
 from msb_config.zeromq import open_zmq_pub_socket
-from GPSConfig import GPSConfig, GPS_TOPIC
+from msb_gps.GPSConfig import GPSConfig, GPS_TOPIC
 
 zero_timestamp = datetime.fromtimestamp(0, tz=timezone.utc)
 
