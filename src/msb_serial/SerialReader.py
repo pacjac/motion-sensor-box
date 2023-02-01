@@ -7,14 +7,15 @@ from msb_serial.SerialConfig import SerialConfig
 # sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from zmq_base.Publisher import MsbPublisher
+from zmq_base.Payload import Payload, PayloadFactory
 
 class SerialReader:
     def __init__(self):
         self.config = SerialConfig()
         self.publisher = MsbPublisher(connect_to=self.config.xsub_socketstring)
-        self.topics = self.config.topic
-        self.topics = ["pow", "gen", "rtr", "wnd", "pit"]
+        self.topic = self.config.topic
 
+        self.topics = ["pow", "gen", "rtr", "wnd", "pit"]
         self.pattern = re.compile(r"(\d*\.?\d+)kW\s*(\d*\.?\d+)rpm\s*(\d*\.?\d+)rpm\s*(\d*\.?\d+)m/s\s*(-?\d*\.?\d+)")
 
         # Assert that device is connected to /dev/serial0
@@ -27,11 +28,14 @@ class SerialReader:
 
 
     def read_message_extract_and_publish(self):
+        to_send = dict()
+        topic = "spy".encode()
         for message in self.read_message():
             data_values = self.extractFloats(message)
             for topic, value in zip(self.topics, data_values):
-                print(f"{topic}: {value}")
-                self.publisher.send(topic.encode(), value.encode())
+                to_send[topic] = value
+                # print(f"{topic}: {value}")
+            self.publisher.send(topic, pickle.dumps(to_send))
 
 
     def extractFloats(self, text, isBytes=True):

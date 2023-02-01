@@ -1,6 +1,7 @@
 from paho.mqtt import client as mqtt_client
 import ssl
 import time
+import pickle
 
 from msb_mqtt.MQTTConfig import MQTTConfig
 from zmq_base.Subscriber import Subscriber
@@ -24,9 +25,20 @@ class MQTTnode:
         while True:
             # This is blocking
             try:
+                # ZQM transports a pickled dict, with topic as key and value as value
                 (zmq_topic, data) = self.subscriber.receive()
 
-                self.publish(zmq_topic.decode(), float(data.decode()))
+                # Deserialize data, assuming its a dict
+                # Good place for a refactor, what if it is not a dict?
+                data = pickle.loads(data)
+
+                # Publish each key-value pair in the dict
+                for topic, value in data.items():
+                    self.publish(topic, value)
+
+
+                # We comment this out for now, but I would like to replace this with an extra function
+                # self.publish(zmq_topic.decode(), float(data.decode()))
             except Exception as e:
                 print(e)
 
