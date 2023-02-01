@@ -6,11 +6,12 @@ StartLimitIntervalSec=0
 [Service]
 SyslogIdentifier=msb-broker
 Type=simple
-Restart=always
+Restart=on-failure
 RestartSec=1
-Environment="MSB_CONFIG_DIR=/home/felix/.config"
-User=felix
-ExecStart=/usr/bin/python3 /home/felix/repositories/motion-sensor-box/src/msb_broker/msb_broker.py
+Environment="MSB_CONFIG_DIR=/home/base/.config"
+Environment="PYTHONPATH=/home/base/motion-sensor-box/src"
+User=base
+ExecStart=/usr/bin/python3 /home/base/motion-sensor-box/src/msb_broker/msb_broker.py
 
 [Install]
 WantedBy=multi-user.target

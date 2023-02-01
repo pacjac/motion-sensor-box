@@ -1,5 +1,6 @@
 import re
 import serial
+import pickle
 
 from msb_serial.SerialConfig import SerialConfig
 
@@ -7,7 +8,6 @@ from msb_serial.SerialConfig import SerialConfig
 # sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from zmq_base.Publisher import MsbPublisher
-from zmq_base.Payload import Payload, PayloadFactory
 
 class SerialReader:
     def __init__(self):
@@ -29,13 +29,13 @@ class SerialReader:
 
     def read_message_extract_and_publish(self):
         to_send = dict()
-        topic = "spy".encode()
+        ptopic = "spy".encode()
         for message in self.read_message():
             data_values = self.extractFloats(message)
             for topic, value in zip(self.topics, data_values):
                 to_send[topic] = value
                 # print(f"{topic}: {value}")
-            self.publisher.send(topic, pickle.dumps(to_send))
+            self.publisher.send(ptopic, pickle.dumps(to_send))
 
 
     def extractFloats(self, text, isBytes=True):
