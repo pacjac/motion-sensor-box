@@ -1,5 +1,6 @@
 import re
 import serial
+from serial.serialutil import SerialException
 import pickle
 
 from msb_serial.SerialConfig import SerialConfig
@@ -22,7 +23,7 @@ class SerialReader:
         try:
             with serial.Serial('/dev/serial0', baudrate=9600, timeout = 0.05) as serial_reader:
                 pass
-        except serial.serialutil.SerialException:
+        except SerialException:
             raise Exception("Serial device not connected to /dev/serial0")
 
 
@@ -34,11 +35,11 @@ class SerialReader:
             data_values = self.extractFloats(message)
             for topic, value in zip(self.topics, data_values):
                 to_send[topic] = value
-                # print(f"{topic}: {value}")
+
             self.publisher.send(ptopic, pickle.dumps(to_send))
 
 
-    def extractFloats(self, text, isBytes=True):
+    def extractFloats(self, text) -> str:
         # Match regex, return a tuple
         try:
             matching_tuple = re.findall(self.pattern, text)
@@ -50,6 +51,7 @@ class SerialReader:
             return matching_tuple[0]
         except Exception as e:
             print(f"Could not find match on {text}")
+            return ""
 
 
 
@@ -63,7 +65,7 @@ class SerialReader:
                         # Make sure we always work with unicode or bytes, need to decide!
                         yield message.decode('utf-8')
                     except UnicodeError as e:
-                        print(f"Could not decode: {text}")
+                        print(f"Could not decode: {message}")
                         print(e)
 
 if __name__ == "__main__":
