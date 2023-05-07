@@ -2,6 +2,7 @@ import re
 import serial
 from serial.serialutil import SerialException
 import pickle
+import sys
 
 from msb_serial.SerialConfig import SerialConfig
 
@@ -10,34 +11,40 @@ from msb_serial.SerialConfig import SerialConfig
 
 from zmq_base.Publisher import MsbPublisher
 
+
 class SerialReader:
     def __init__(self):
         self.config = SerialConfig()
         self.publisher = MsbPublisher(connect_to=self.config.xsub_socketstring)
         self.topic = self.config.topic
+        self.device = "/dev/ttyUSB0"
 
         self.topics = ["pow", "gen", "rtr", "wnd", "pit"]
-        self.pattern = re.compile(r"(\d*\.?\d+)kW\s*(\d*\.?\d+)rpm\s*(\d*\.?\d+)rpm\s*(\d*\.?\d+)m/s\s*(-?\d*\.?\d+)")
+        self.pattern = re.compile(
+            r"(\d*\.?\d+)kW\s*(\d*\.?\d+)rpm\s*(\d*\.?\d+)rpm\s*(\d*\.?\d+)m/s\s*(-?\d*\.*\d*)"
+        )
 
         # Assert that device is connected to /dev/serial0
         try:
-            with serial.Serial('/dev/serial0', baudrate=9600, timeout = 0.05) as serial_reader:
-                pass
+            with serial.Serial(
+                self.device, baudrate=9600, timeout=0.05
+            ) as serial_reader:
+                print(f"Serial device connected to {self.device}")
         except SerialException:
-            raise Exception("Serial device not connected to /dev/serial0")
-
-
+            print("Serial device not connected to {self.device}")
+            sys.exit(1)
 
     def read_message_extract_and_publish(self):
-        to_send = dict()
+        to_send = list()
         ptopic = "spy".encode()
         for message in self.read_message():
             data_values = self.extractFloats(message)
             for topic, value in zip(self.topics, data_values):
-                to_send[topic] = value
+                # to_send[topic] = value
+                to_send.append(value)
 
             self.publisher.send(ptopic, pickle.dumps(to_send))
-
+            to_send = []
 
     def extractFloats(self, text) -> str:
         # Match regex, return a tuple
@@ -53,22 +60,53 @@ class SerialReader:
             print(f"Could not find match on {text}")
             return ""
 
-
-
     def read_message(self):
-        with serial.Serial('/dev/serial0', baudrate=9600, timeout = 0.05) as serial_reader:
-            while True:
-                if serial_reader.in_waiting > 0 :
-                    try:
-                        message = serial_reader.readline()
+        # device = "/dev/serial0"
+        timeout = 0.05
+        baudrate = 9600
+        with serial.Serial(
+            self.device,
+            baudrate=baudrate,
+            parity=serial.PARITY_NONE,
+            timeout=timeout,
+            stopbits=serial.STOPBITS_ONE,
+            bytesize=serial.EIGHTBITS,
+        ) as serial_reader:
+            # Set RTS to low and DTR to high
+            # Required for a read-only connection to Vestas controller
+            serial_reader.rts = False
+            serial_reader.dtr = True
 
-                        # Make sure we always work with unicode or bytes, need to decide!
-                        yield message.decode('utf-8')
+            buffer = ""
+
+            while True:
+                if serial_reader.in_waiting > 0:
+                    try:
+                        buffer = (
+                            buffer
+                            + serial_reader.read(serial_reader.in_waiting).decode()
+                        )
+                        # message = serial_reader.readline()
+
+                        # Make sure we always work with unicode or bytes
+                        # need to decide!
+                        #     if not buffer.startswith("1:OVERVIEW"):
+                        #         buffer = buffer[buffer.index("1:OVERVIEW"):]
+                        #         continue
+                        #     else:
+                        if "1:OVERVIEW" in buffer:
+                            message = buffer
+                            buffer = ""
+                            yield message
                     except UnicodeError as e:
-                        print(f"Could not decode: {message}")
-                        print(e)
+                        # print(f"Could not decode: {message}")
+                        # print(e)
+                        continue
+
 
 if __name__ == "__main__":
     reader = SerialReader()
     # Run continuous loop
+    # for message in reader.read_message():
+    # print(message)
     reader.read_message_extract_and_publish()
