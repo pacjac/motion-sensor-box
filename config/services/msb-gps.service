@@ -11,7 +11,7 @@ RestartSec=1
 Environment="MSB_CONFIG_DIR=/home/base/.config"
 Environment="PYTHONPATH=/home/base/motion-sensor-box/src"
 User=base
-ExecStart=/usr/bin/python3 /home/base/motion-sensor-box/src/msb_gps/msb_gps.py
+ExecStart=/usr/bin/python3 /home/base/motion-sensor-box/src/msb_gps/GPSSender.py
 
 [Install]
 WantedBy=multi-user.target
